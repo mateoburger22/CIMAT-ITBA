@@ -1,0 +1,133 @@
+/* ========================================================================
+   styles.css
+   Variables globales (colores, tipografías, espaciado) y estilos base.
+   ======================================================================== */
+
+:root {
+    /* --- Colores marca CIMAT --- */
+    --color-yellow:        #FFC600;
+    --color-yellow-dark:   #E6B400;
+
+    /* --- Neutros --- */
+    --color-black:         #1A1A1A;
+    --color-gray-900:      #2A2A2A;
+    --color-gray-700:      #4A4A4A;
+    --color-gray-500:      #757575;
+    --color-gray-300:      #D0D0D0;
+    --color-gray-100:      #F5F5F5;
+    --color-white:         #FFFFFF;
+
+    /* --- Tipografía --- */
+    --font-display: 'Barlow Condensed', 'Arial Narrow', sans-serif;
+    --font-body:    'Inter', system-ui, -apple-system, sans-serif;
+
+    --fs-xs:   0.8125rem;   /* 13 px */
+    --fs-sm:   1rem;        /* 16 px */
+    --fs-md:   1.125rem;    /* 18 px */
+    --fs-lg:   1.5rem;      /* 24 px */
+    --fs-xl:   2rem;        /* 32 px */
+    --fs-2xl:  2.75rem;     /* 44 px */
+    --fs-3xl:  3.75rem;     /* 60 px */
+
+    /* --- Espaciado --- */
+    --space-2xs: 0.25rem;
+    --space-xs:  0.5rem;
+    --space-sm:  1rem;
+    --space-md:  1.5rem;
+    --space-lg:  2.5rem;
+    --space-xl:  4rem;
+    --space-2xl: 6rem;
+
+    /* --- Layout --- */
+    --container:        1200px;
+    --container-narrow: 800px;
+
+    /* --- Otros --- */
+    --transition: 0.2s ease;
+    --shadow-soft: 0 4px 12px rgba(0, 0, 0, 0.06);
+    --shadow-hover: 0 12px 32px rgba(0, 0, 0, 0.12);
+}
+
+/* ------------------------------------------------------------------------
+   Base
+   ------------------------------------------------------------------------ */
+
+body {
+    font-family: var(--font-body);
+    font-size: var(--fs-sm);
+    color: var(--color-black);
+    background: var(--color-white);
+}
+
+h1,
+h2,
+h3 {
+    font-family: var(--font-display);
+    font-weight: 700;
+    line-height: 1.05;
+    text-transform: uppercase;
+    letter-spacing: 0.01em;
+}
+
+h1 { font-size: var(--fs-2xl); }
+h2 { font-size: var(--fs-xl); }
+h3 { font-size: var(--fs-lg); }
+
+@media (min-width: 768px) {
+    h1 { font-size: var(--fs-3xl); }
+    h2 { font-size: var(--fs-2xl); }
+}
+
+p {
+    color: var(--color-gray-700);
+}
+
+/* ------------------------------------------------------------------------
+   Accesibilidad
+   ------------------------------------------------------------------------ */
+
+.skip-link {
+    position: absolute;
+    top: -100px;
+    left: 0;
+    background: var(--color-black);
+    color: var(--color-yellow);
+    padding: var(--space-xs) var(--space-sm);
+    font-weight: 600;
+    z-index: 100;
+}
+
+.skip-link:focus {
+    top: 0;
+}
+
+a:focus-visible,
+button:focus-visible {
+    outline: 2px solid var(--color-yellow);
+    outline-offset: 3px;
+}
+
+/* ------------------------------------------------------------------------
+   Utilidades
+   ------------------------------------------------------------------------ */
+
+.eyebrow {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: var(--fs-sm);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--color-yellow-dark);
+    margin-bottom: var(--space-xs);
+}
+
+.section-header {
+    max-width: var(--container-narrow);
+    margin: 0 auto var(--space-lg);
+    text-align: center;
+}
+
+.section-lead {
+    font-size: var(--fs-md);
+    margin-top: var(--space-sm);
+}

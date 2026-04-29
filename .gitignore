@@ -1,0 +1,32 @@
+# Dependencias y builds (vendrán en fases más avanzadas)
+node_modules/
+dist/
+build/
+.next/
+out/
+
+# Variables de entorno
+.env
+.env.local
+.env.*.local
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Archivos del sistema y editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.swp
+
+# Caché de herramientas
+.cache/
+.parcel-cache/
+
+# Temporales del proyecto
+.tmp_*
+*.tmp
