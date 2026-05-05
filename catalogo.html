@@ -13,6 +13,8 @@
     <link rel="stylesheet" href="css/reset.css">
     <link rel="stylesheet" href="css/styles.css">
     <link rel="stylesheet" href="css/components.css">
+
+    <script src="js/cart.js" defer></script>
 </head>
 <body>
     <a class="skip-link" href="#main">Saltar al contenido principal</a>
@@ -31,9 +33,16 @@
                 </ul>
             </nav>
 
-            <a href="carrito.html" class="cart-link" aria-label="Ver carrito de compras">
-                Carrito
-            </a>
+            <details class="cart-widget">
+                <summary class="cart-link" aria-label="Ver carrito de compras, vacío">
+                    Carrito <span class="cart-badge" aria-hidden="true" hidden>0</span>
+                </summary>
+                <div class="cart-dropdown">
+                    <p class="cart-dropdown__heading">Tu carrito</p>
+                    <p class="cart-dropdown__empty">Tu carrito está vacío.</p>
+                    <a href="catalogo.html" class="btn btn-primary cart-dropdown__cta">Ir al catálogo</a>
+                </div>
+            </details>
         </div>
     </header>
 
@@ -60,7 +69,6 @@
                 <li><a href="#reparacion">Reparación con fibra de vidrio</a></li>
                 <li><a href="#aislacion">Aislación eléctrica</a></li>
                 <li><a href="#sellado">Sellado de tuberías</a></li>
-                <li><a href="#alta-temperatura">Alta temperatura</a></li>
             </ul>
         </nav>
 
@@ -75,8 +83,8 @@
             <ul class="product-grid">
                 <li>
                     <article class="product-card">
-                        <div class="product-card__visual" aria-hidden="true">
-                            <span>CIMAT</span>
+                        <div class="product-card__visual">
+                            <img src="assets/img/productos/armortape.png" alt="ArmorTape — cinta de fibra de vidrio CIMAT">
                         </div>
                         <div class="product-card__body">
                             <p class="product-card__sku">CIMAT-RW-050</p>
@@ -87,15 +95,15 @@
                             <p class="product-card__price">$24.500</p>
                             <div class="product-card__actions">
                                 <a href="producto.html" class="btn btn-primary">Ver detalle</a>
-                                <button type="button" class="btn btn-outline">Agregar</button>
+                                <button type="button" class="btn btn-outline" data-add-to-cart data-sku="CIMAT-RW-050" data-name="Repair Wrap 50 mm" data-price="24500" data-image="assets/img/productos/armortape.png">Agregar</button>
                             </div>
                         </div>
                     </article>
                 </li>
                 <li>
                     <article class="product-card">
-                        <div class="product-card__visual" aria-hidden="true">
-                            <span>CIMAT</span>
+                        <div class="product-card__visual">
+                            <img src="assets/img/productos/armortape.png" alt="ArmorTape — cinta de fibra de vidrio CIMAT">
                         </div>
                         <div class="product-card__body">
                             <p class="product-card__sku">CIMAT-RW-075</p>
@@ -106,15 +114,15 @@
                             <p class="product-card__price">$35.800</p>
                             <div class="product-card__actions">
                                 <a href="producto.html" class="btn btn-primary">Ver detalle</a>
-                                <button type="button" class="btn btn-outline">Agregar</button>
+                                <button type="button" class="btn btn-outline" data-add-to-cart data-sku="CIMAT-RW-075" data-name="Repair Wrap 75 mm" data-price="35800" data-image="assets/img/productos/armortape.png">Agregar</button>
                             </div>
                         </div>
                     </article>
                 </li>
                 <li>
                     <article class="product-card">
-                        <div class="product-card__visual" aria-hidden="true">
-                            <span>CIMAT</span>
+                        <div class="product-card__visual">
+                            <img src="assets/img/productos/armortape.png" alt="ArmorTape — cinta de fibra de vidrio CIMAT">
                         </div>
                         <div class="product-card__body">
                             <p class="product-card__sku">CIMAT-RW-100</p>
@@ -125,7 +133,7 @@
                             <p class="product-card__price">$48.900</p>
                             <div class="product-card__actions">
                                 <a href="producto.html" class="btn btn-primary">Ver detalle</a>
-                                <button type="button" class="btn btn-outline">Agregar</button>
+                                <button type="button" class="btn btn-outline" data-add-to-cart data-sku="CIMAT-RW-100" data-name="Repair Wrap Heavy Duty 100 mm" data-price="48900" data-image="assets/img/productos/armortape.png">Agregar</button>
                             </div>
                         </div>
                     </article>
@@ -144,8 +152,8 @@
             <ul class="product-grid">
                 <li>
                     <article class="product-card">
-                        <div class="product-card__visual" aria-hidden="true">
-                            <span>CIMAT</span>
+                        <div class="product-card__visual">
+                            <img src="assets/img/productos/electrictape.png" alt="ElectricTape — cinta aisladora eléctrica CIMAT">
                         </div>
                         <div class="product-card__body">
                             <p class="product-card__sku">CIMAT-PVC-019</p>
@@ -156,15 +164,15 @@
                             <p class="product-card__price">$4.200</p>
                             <div class="product-card__actions">
                                 <a href="producto.html" class="btn btn-primary">Ver detalle</a>
-                                <button type="button" class="btn btn-outline">Agregar</button>
+                                <button type="button" class="btn btn-outline" data-add-to-cart data-sku="CIMAT-PVC-019" data-name="Aislante PVC Premium 19 mm" data-price="4200" data-image="assets/img/productos/electrictape.png">Agregar</button>
                             </div>
                         </div>
                     </article>
                 </li>
                 <li>
                     <article class="product-card">
-                        <div class="product-card__visual" aria-hidden="true">
-                            <span>CIMAT</span>
+                        <div class="product-card__visual">
+                            <img src="assets/img/productos/electrictape.png" alt="ElectricTape — cinta aisladora eléctrica CIMAT">
                         </div>
                         <div class="product-card__body">
                             <p class="product-card__sku">CIMAT-AF-019</p>
@@ -175,15 +183,15 @@
                             <p class="product-card__price">$12.300</p>
                             <div class="product-card__actions">
                                 <a href="producto.html" class="btn btn-primary">Ver detalle</a>
-                                <button type="button" class="btn btn-outline">Agregar</button>
+                                <button type="button" class="btn btn-outline" data-add-to-cart data-sku="CIMAT-AF-019" data-name="Auto-Fundente 19 mm" data-price="12300" data-image="assets/img/productos/electrictape.png">Agregar</button>
                             </div>
                         </div>
                     </article>
                 </li>
                 <li>
                     <article class="product-card">
-                        <div class="product-card__visual" aria-hidden="true">
-                            <span>CIMAT</span>
+                        <div class="product-card__visual">
+                            <img src="assets/img/productos/electrictape.png" alt="ElectricTape — cinta aisladora eléctrica CIMAT">
                         </div>
                         <div class="product-card__body">
                             <p class="product-card__sku">CIMAT-CPK-005</p>
@@ -194,7 +202,7 @@
                             <p class="product-card__price">$18.500</p>
                             <div class="product-card__actions">
                                 <a href="producto.html" class="btn btn-primary">Ver detalle</a>
-                                <button type="button" class="btn btn-outline">Agregar</button>
+                                <button type="button" class="btn btn-outline" data-add-to-cart data-sku="CIMAT-CPK-005" data-name="Color Pack Eléctrico" data-price="18500" data-image="assets/img/productos/electrictape.png">Agregar</button>
                             </div>
                         </div>
                     </article>
@@ -213,8 +221,8 @@
             <ul class="product-grid">
                 <li>
                     <article class="product-card">
-                        <div class="product-card__visual" aria-hidden="true">
-                            <span>CIMAT</span>
+                        <div class="product-card__visual">
+                            <img src="assets/img/productos/polytape.png" alt="PolyTape — cinta de reparación para tuberías CIMAT">
                         </div>
                         <div class="product-card__body">
                             <p class="product-card__sku">CIMAT-SH-050</p>
@@ -225,15 +233,15 @@
                             <p class="product-card__price">$9.800</p>
                             <div class="product-card__actions">
                                 <a href="producto.html" class="btn btn-primary">Ver detalle</a>
-                                <button type="button" class="btn btn-outline">Agregar</button>
+                                <button type="button" class="btn btn-outline" data-add-to-cart data-sku="CIMAT-SH-050" data-name="Sellador Hidráulico Universal" data-price="9800" data-image="assets/img/productos/polytape.png">Agregar</button>
                             </div>
                         </div>
                     </article>
                 </li>
                 <li>
                     <article class="product-card">
-                        <div class="product-card__visual" aria-hidden="true">
-                            <span>CIMAT</span>
+                        <div class="product-card__visual">
+                            <img src="assets/img/productos/polytape.png" alt="PolyTape — cinta de reparación para tuberías CIMAT">
                         </div>
                         <div class="product-card__body">
                             <p class="product-card__sku">CIMAT-PTF-012</p>
@@ -244,15 +252,15 @@
                             <p class="product-card__price">$3.500</p>
                             <div class="product-card__actions">
                                 <a href="producto.html" class="btn btn-primary">Ver detalle</a>
-                                <button type="button" class="btn btn-outline">Agregar</button>
+                                <button type="button" class="btn btn-outline" data-add-to-cart data-sku="CIMAT-PTF-012" data-name="PTFE Industrial 12 mm" data-price="3500" data-image="assets/img/productos/polytape.png">Agregar</button>
                             </div>
                         </div>
                     </article>
                 </li>
                 <li>
                     <article class="product-card">
-                        <div class="product-card__visual" aria-hidden="true">
-                            <span>CIMAT</span>
+                        <div class="product-card__visual">
+                            <img src="assets/img/productos/polytape.png" alt="PolyTape — cinta de reparación para tuberías CIMAT">
                         </div>
                         <div class="product-card__body">
                             <p class="product-card__sku">CIMAT-AFP-075</p>
@@ -263,76 +271,7 @@
                             <p class="product-card__price">$22.400</p>
                             <div class="product-card__actions">
                                 <a href="producto.html" class="btn btn-primary">Ver detalle</a>
-                                <button type="button" class="btn btn-outline">Agregar</button>
-                            </div>
-                        </div>
-                    </article>
-                </li>
-            </ul>
-        </section>
-
-        <!-- Línea 4: Alta temperatura -->
-        <section id="alta-temperatura" class="product-section product-section--alt" aria-labelledby="alta-temperatura-title">
-            <div class="product-section-header">
-                <p class="eyebrow">Línea 04</p>
-                <h2 id="alta-temperatura-title">Alta temperatura</h2>
-                <p>Cintas resistentes al calor para aplicaciones industriales sostenidas por encima de los 200&nbsp;°C.</p>
-            </div>
-
-            <ul class="product-grid">
-                <li>
-                    <article class="product-card">
-                        <div class="product-card__visual" aria-hidden="true">
-                            <span>CIMAT</span>
-                        </div>
-                        <div class="product-card__body">
-                            <p class="product-card__sku">CIMAT-ALT-050</p>
-                            <h3 class="product-card__title">Aluminio Térmico 50&nbsp;mm</h3>
-                            <p class="product-card__desc">
-                                Cinta de aluminio con adhesivo acrílico de alta temperatura. Resiste <strong>hasta 300&nbsp;°C</strong>. <strong>50&nbsp;mm × 25&nbsp;m</strong>.
-                            </p>
-                            <p class="product-card__price">$15.800</p>
-                            <div class="product-card__actions">
-                                <a href="producto.html" class="btn btn-primary">Ver detalle</a>
-                                <button type="button" class="btn btn-outline">Agregar</button>
-                            </div>
-                        </div>
-                    </article>
-                </li>
-                <li>
-                    <article class="product-card">
-                        <div class="product-card__visual" aria-hidden="true">
-                            <span>CIMAT</span>
-                        </div>
-                        <div class="product-card__body">
-                            <p class="product-card__sku">CIMAT-FAD-060</p>
-                            <h3 class="product-card__title">Fibra Adhesiva 60&nbsp;mm</h3>
-                            <p class="product-card__desc">
-                                Cinta de fibra de vidrio con adhesivo de silicona. <strong>Hasta 550&nbsp;°C</strong> de operación continua. <strong>60&nbsp;mm × 10&nbsp;m</strong>.
-                            </p>
-                            <p class="product-card__price">$28.700</p>
-                            <div class="product-card__actions">
-                                <a href="producto.html" class="btn btn-primary">Ver detalle</a>
-                                <button type="button" class="btn btn-outline">Agregar</button>
-                            </div>
-                        </div>
-                    </article>
-                </li>
-                <li>
-                    <article class="product-card">
-                        <div class="product-card__visual" aria-hidden="true">
-                            <span>CIMAT</span>
-                        </div>
-                        <div class="product-card__body">
-                            <p class="product-card__sku">CIMAT-CER-050</p>
-                            <h3 class="product-card__title">Cerámica Sellante 50&nbsp;mm</h3>
-                            <p class="product-card__desc">
-                                Cinta cerámica para hornos, escapes industriales y sellado de juntas a temperaturas extremas. <strong>Hasta 1100&nbsp;°C</strong>. <strong>50&nbsp;mm × 5&nbsp;m</strong>.
-                            </p>
-                            <p class="product-card__price">$39.200</p>
-                            <div class="product-card__actions">
-                                <a href="producto.html" class="btn btn-primary">Ver detalle</a>
-                                <button type="button" class="btn btn-outline">Agregar</button>
+                                <button type="button" class="btn btn-outline" data-add-to-cart data-sku="CIMAT-AFP-075" data-name="Anti-Fugas Pro 75 mm" data-price="22400" data-image="assets/img/productos/polytape.png">Agregar</button>
                             </div>
                         </div>
                     </article>

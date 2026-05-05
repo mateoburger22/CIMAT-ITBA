@@ -13,6 +13,8 @@
     <link rel="stylesheet" href="css/reset.css">
     <link rel="stylesheet" href="css/styles.css">
     <link rel="stylesheet" href="css/components.css">
+
+    <script src="js/cart.js" defer></script>
 </head>
 <body>
     <a class="skip-link" href="#main">Saltar al contenido principal</a>
@@ -31,9 +33,16 @@
                 </ul>
             </nav>
 
-            <a href="carrito.html" class="cart-link" aria-label="Ver carrito de compras">
-                Carrito
-            </a>
+            <details class="cart-widget">
+                <summary class="cart-link" aria-label="Ver carrito de compras, vacío">
+                    Carrito <span class="cart-badge" aria-hidden="true" hidden>0</span>
+                </summary>
+                <div class="cart-dropdown">
+                    <p class="cart-dropdown__heading">Tu carrito</p>
+                    <p class="cart-dropdown__empty">Tu carrito está vacío.</p>
+                    <a href="catalogo.html" class="btn btn-primary cart-dropdown__cta">Ir al catálogo</a>
+                </div>
+            </details>
         </div>
     </header>
 
