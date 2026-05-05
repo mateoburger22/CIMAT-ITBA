@@ -62,7 +62,17 @@
    ------------------------------------------------------------------------ */
 
 .site-header {
-    background: var(--color-white);
+    /* Negro solido desde el borde izquierdo hasta 1cm despues del final del logo,
+       gradiente al blanco desde ahi hasta el borde derecho.
+       El stop del negro = offset + ancho del logo + gap, asi siempre queda alineado. */
+    background: linear-gradient(
+        to right,
+        var(--color-black) 0%,
+        var(--color-black) calc(
+            var(--header-logo-offset) + var(--header-logo-width) + var(--header-gradient-gap)
+        ),
+        var(--color-white) 100%
+    );
     border-bottom: 1px solid var(--color-gray-300);
     position: sticky;
     top: 0;
@@ -70,23 +80,35 @@
 }
 
 .header-inner {
-    max-width: var(--container);
-    margin: 0 auto;
-    padding: var(--space-sm);
+    /* Sin max-width: el header ocupa todo el ancho del viewport.
+       Padding izquierdo chico (--header-logo-offset) para despegar el logo del borde. */
+    width: 100%;
+    height: var(--header-height);
+    padding: 0 var(--space-md) 0 var(--header-logo-offset);
     display: flex;
     align-items: center;
-    justify-content: space-between;
     gap: var(--space-md);
 }
 
 .logo {
-    display: inline-block;
+    display: flex;
+    align-items: center;
     flex-shrink: 0;
 }
 
 .logo img {
-    height: 44px;
-    width: auto;
+    width: var(--header-logo-width);
+    height: auto;
+    max-height: 100%;
+    display: block;
+}
+
+.main-nav {
+    /* Mobile-first: en pantallas chicas el menú queda oculto.
+       Se muestra a partir del breakpoint en el media query de abajo.
+       En fase 2 (con JS) lo reemplazaremos por un menú hamburguesa. */
+    display: none;
+    margin-left: auto;          /* empuja nav y carrito hacia la derecha (zona blanca) */
 }
 
 .main-nav ul {
@@ -120,9 +142,10 @@
     border-color: var(--color-yellow);
 }
 
-@media (max-width: 640px) {
+/* Breakpoint del menú: 640 px y arriba (tablet / desktop). */
+@media (min-width: 641px) {
     .main-nav {
-        display: none;        /* en móvil simplificamos hasta tener menú con JS */
+        display: block;
     }
 }
 
@@ -333,6 +356,273 @@
     color: var(--color-gray-900);
     font-size: var(--fs-md);
     margin-bottom: var(--space-md);
+}
+
+
+/* ========================================================================
+   Catálogo (catalogo.html)
+   ======================================================================== */
+
+/* --- Page header (intro de página interna) --- */
+
+.page-header {
+    background: var(--color-white);
+    padding: var(--space-xl) var(--space-sm) var(--space-lg);
+    border-bottom: 1px solid var(--color-gray-300);
+}
+
+.page-header-inner {
+    max-width: var(--container);
+    margin: 0 auto;
+}
+
+.page-header h1 {
+    margin-top: var(--space-2xs);
+    margin-bottom: var(--space-sm);
+    max-width: 800px;
+}
+
+.page-lead {
+    font-size: var(--fs-md);
+    max-width: 700px;
+    color: var(--color-gray-700);
+}
+
+
+/* --- Breadcrumb --- */
+
+.breadcrumb ol {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2xs) var(--space-xs);
+    font-size: var(--fs-xs);
+    color: var(--color-gray-500);
+    margin-bottom: var(--space-sm);
+}
+
+.breadcrumb li {
+    display: flex;
+    align-items: center;
+    gap: var(--space-xs);
+}
+
+.breadcrumb li + li::before {
+    content: '/';
+    color: var(--color-gray-300);
+}
+
+.breadcrumb a {
+    transition: color var(--transition);
+}
+
+.breadcrumb a:hover {
+    color: var(--color-yellow-dark);
+}
+
+.breadcrumb [aria-current="page"] {
+    color: var(--color-black);
+    font-weight: 500;
+}
+
+
+/* --- Filtro de categorías (sticky bajo el header) --- */
+
+.category-filter {
+    position: sticky;
+    top: var(--header-height);
+    z-index: 40;
+    background: var(--color-gray-100);
+    border-bottom: 1px solid var(--color-gray-300);
+    padding: var(--space-xs) 0;
+}
+
+.category-filter ul {
+    max-width: var(--container);
+    margin: 0 auto;
+    padding: 0 var(--space-sm);
+    display: flex;
+    gap: var(--space-xs);
+    overflow-x: auto;            /* scroll horizontal en mobile si no entra */
+    scrollbar-width: none;       /* firefox */
+}
+
+.category-filter ul::-webkit-scrollbar {
+    display: none;               /* chrome/safari */
+}
+
+.category-filter li {
+    flex-shrink: 0;
+}
+
+.category-filter a {
+    display: inline-block;
+    padding: 0.5rem 1rem;
+    font-size: var(--fs-sm);
+    font-weight: 500;
+    color: var(--color-gray-700);
+    background: var(--color-white);
+    border: 1px solid var(--color-gray-300);
+    white-space: nowrap;
+    transition: all var(--transition);
+}
+
+.category-filter a:hover {
+    background: var(--color-yellow);
+    color: var(--color-black);
+    border-color: var(--color-yellow);
+}
+
+
+/* --- Sección de productos --- */
+
+.product-section {
+    padding: var(--space-xl) var(--space-sm);
+    /* offset cuando se navega via anchor (#reparacion etc.):
+       deja espacio bajo el header sticky + filtro sticky */
+    scroll-margin-top: calc(var(--header-height) + 4rem);
+}
+
+.product-section--alt {
+    background: var(--color-gray-100);
+}
+
+.product-section-header {
+    max-width: var(--container);
+    margin: 0 auto var(--space-lg);
+}
+
+.product-section-header h2 {
+    margin-top: var(--space-2xs);
+    margin-bottom: var(--space-sm);
+}
+
+.product-section-header p {
+    max-width: 700px;
+    color: var(--color-gray-700);
+}
+
+
+/* --- Grid de productos: mobile-first --- */
+
+.product-grid {
+    max-width: var(--container);
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 1fr;          /* mobile: 1 col */
+    gap: var(--space-md);
+}
+
+@media (min-width: 640px) {
+    .product-grid {
+        grid-template-columns: repeat(2, 1fr);   /* tablet: 2 cols */
+    }
+}
+
+@media (min-width: 1000px) {
+    .product-grid {
+        grid-template-columns: repeat(3, 1fr);   /* desktop: 3 cols */
+    }
+}
+
+
+/* --- Product card --- */
+
+.product-card {
+    height: 100%;
+    background: var(--color-white);
+    border: 1px solid var(--color-gray-300);
+    display: flex;
+    flex-direction: column;
+    transition: transform var(--transition), box-shadow var(--transition);
+}
+
+.product-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-hover);
+}
+
+.product-card__visual {
+    aspect-ratio: 4 / 3;
+    background-color: var(--color-gray-100);
+    background-image: repeating-linear-gradient(
+        135deg,
+        transparent 0 14px,
+        rgba(255, 198, 0, 0.10) 14px 28px
+    );
+    border-bottom: 4px solid var(--color-yellow);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.product-card__visual span {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: var(--fs-xl);
+    color: var(--color-gray-300);
+    letter-spacing: 0.15em;
+}
+
+.product-card__body {
+    padding: var(--space-md);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-xs);
+    flex-grow: 1;
+}
+
+.product-card__sku {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: var(--fs-xs);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--color-yellow-dark);
+}
+
+.product-card__title {
+    margin-bottom: var(--space-2xs);
+}
+
+.product-card__desc {
+    font-size: var(--fs-sm);
+    color: var(--color-gray-700);
+    flex-grow: 1;          /* empuja precio + actions hacia abajo */
+}
+
+.product-card__price {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: var(--fs-xl);
+    color: var(--color-black);
+    margin-top: var(--space-xs);
+}
+
+.product-card__actions {
+    display: flex;
+    gap: var(--space-xs);
+    margin-top: var(--space-sm);
+}
+
+.product-card__actions .btn {
+    flex: 1;
+    text-align: center;
+    padding: 0.625rem 0.75rem;
+    font-size: var(--fs-xs);
+}
+
+
+/* --- Variante outline oscura del botón (la usamos en las cards del catálogo) --- */
+
+.btn-outline {
+    background: transparent;
+    color: var(--color-black);
+    border-color: var(--color-black);
+}
+
+.btn-outline:hover {
+    background: var(--color-black);
+    color: var(--color-white);
 }
 
 

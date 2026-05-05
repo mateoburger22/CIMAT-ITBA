@@ -29,18 +29,34 @@
     --fs-2xl:  2.75rem;     /* 44 px */
     --fs-3xl:  3.75rem;     /* 60 px */
 
-    /* --- Espaciado --- */
+    /* --- Espaciado ---
+       Los tamaños chicos son fijos (sirven igual en mobile y desktop).
+       Los grandes (xl, 2xl) usan clamp() para escalar con el viewport:
+       en mobile son chicos (compacto, sin tanto aire), en desktop son grandes.
+       Esto evita tener que duplicar reglas con @media queries. */
     --space-2xs: 0.25rem;
     --space-xs:  0.5rem;
     --space-sm:  1rem;
     --space-md:  1.5rem;
-    --space-lg:  2.5rem;
-    --space-xl:  4rem;
-    --space-2xl: 6rem;
+    --space-lg:  clamp(1.75rem, 4vw, 2.5rem);     /* 28 → 40 px */
+    --space-xl:  clamp(2.5rem,  6vw, 4rem);       /* 40 → 64 px */
+    --space-2xl: clamp(3rem,    8vw, 6rem);       /* 48 → 96 px */
 
     /* --- Layout --- */
     --container:        1200px;
     --container-narrow: 800px;
+
+    /* --- Header --- */
+    --header-logo-aspect: 4.05;                            /* W/H del PNG recortado (1182/292) */
+    --header-logo-width:  clamp(100px, 16.67vw, 240px);    /* ancho del logo: ~1/6 del viewport */
+    --header-logo-offset: 0.75rem;                         /* despegue del logo respecto al borde izquierdo (~12 px) */
+    --header-gradient-gap: 1cm;                            /* tramo de negro solido despues del logo, antes que arranque el gradiente */
+    --header-height:      max(
+        56px,
+        calc(var(--header-logo-width) / var(--header-logo-aspect) + 0.75rem)
+    );
+    /* header-height = altura del logo + ~12 px de respiración vertical,
+       con piso de 56 px en pantallas muy chicas para que el carrito siga entrando comodo. */
 
     /* --- Otros --- */
     --transition: 0.2s ease;
