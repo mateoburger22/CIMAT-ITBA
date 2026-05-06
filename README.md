@@ -1,24 +1,36 @@
-# CIMAT
+This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
-Ecommerce de cintas adhesivas industriales (water-activated fiberglass repair bands, cintas aislantes industriales, cintas selladoras de tuberías y caños aptos para calor, entre otras).
+## Getting Started
 
-## Sobre el proyecto
+First, run the development server:
 
-Proyecto de la materia **71.38 Programación Web** (Q1 2026). El desarrollo se hace progresivamente, siguiendo las fases del programa de la materia:
+```bash
+npm run dev
+# or
+yarn dev
+# or
+pnpm dev
+# or
+bun dev
+```
 
-1. **Fase 1** — HTML semántico + CSS (estructura y estilo)
-2. **Fase 2** — JavaScript (funcionalidad e interactividad)
-3. **Fase 3** — Migración a React (componentes y estado)
-4. **Fase 4** — Migración a Next.js (rutas y data-fetching)
-5. **Fase 5** — Backend, base de datos e integración con Mercado Pago
+Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-## Carpeta `docs/`
+You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
 
-- **`docs/prompts/`** — registro obligatorio de los prompts usados con IA (entregable del Momento 4 del parcial).
-- **`docs/explicaciones/`** — apuntes de cada decisión técnica para repasar antes del oral.
+This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
-## Stack previsto
+## Learn More
 
-- Frontend: HTML / CSS / JS → React → Next.js
-- Hosting: Vercel
-- Control de versiones: Git + GitHub (CI/CD via Vercel)
+To learn more about Next.js, take a look at the following resources:
+
+- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
+- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+
+You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+
+## Deploy on Vercel
+
+The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+
+Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
