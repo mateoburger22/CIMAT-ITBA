@@ -1,0 +1,22 @@
+.confirmation {
+    padding: var(--space-2xl) var(--space-sm);
+    background:
+        repeating-linear-gradient(
+            135deg,
+            transparent 0 60px,
+            rgba(255, 198, 0, 0.04) 60px 120px
+        ),
+        var(--color-gray-100);
+    min-height: 60vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.inner {
+    text-align: center;
+}
+
+.confirmation h1 {
+    margin-top: var(--space-xs);
+}
