@@ -12,20 +12,19 @@
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
-import {
-    productos,
-    getProductoBySlug,
-    formatPrice,
-    lineas,
-} from '@/data/productos';
+import { formatPrice, lineas } from '@/data/productos';
+import { getAllProductos, getProductoBySlug } from '@/lib/productos';
 import AddToCartBlock from '@/components/AddToCartBlock';
 import styles from './page.module.css';
 
 // generateStaticParams le dice a Next qué valores de [id] existen.
 // Next pre-renderiza UNA página HTML por cada producto en build-time
 // (9 productos → 9 URLs estáticas). Resultado: navegación instantánea
-// y mejor SEO porque cada ficha es un archivo HTML real.
-export function generateStaticParams() {
+// y mejor SEO. Ahora el listado de slugs sale de la DB, así que esta
+// función es async: corre durante `next build` con las env vars de
+// Supabase, no en cada request.
+export async function generateStaticParams() {
+    const productos = await getAllProductos();
     return productos.map((p) => ({ id: p.sku.toLowerCase() }));
 }
 
@@ -33,7 +32,7 @@ export function generateStaticParams() {
 // por producto. En Next 16, params es un Promise que hay que await.
 export async function generateMetadata({ params }) {
     const { id } = await params;
-    const product = getProductoBySlug(id);
+    const product = await getProductoBySlug(id);
     if (!product) {
         return { title: 'Producto no encontrado — Polytape' };
     }
@@ -46,7 +45,7 @@ export async function generateMetadata({ params }) {
 
 export default async function ProductoDetalle({ params }) {
     const { id } = await params;
-    const product = getProductoBySlug(id);
+    const product = await getProductoBySlug(id);
 
     // Si el slug no coincide con ningún producto, Next sirve automáticamente
     // su página 404 (app/not-found.js o el fallback default).

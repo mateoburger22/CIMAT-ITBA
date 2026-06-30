@@ -12,6 +12,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import CartWidget from './CartWidget';
+import AuthMenu from './AuthMenu';
 import styles from './Header.module.css';
 
 function NavItem({ href, exact, children }) {
@@ -60,6 +61,7 @@ export default function Header() {
                     </ul>
                 </nav>
 
+                <AuthMenu />
                 <CartWidget />
             </div>
         </header>

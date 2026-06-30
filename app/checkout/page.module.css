@@ -200,3 +200,11 @@
     font-size: var(--fs-xl);
     color: var(--color-black);
 }
+
+.error {
+    background: #fbecea;
+    border: 1px solid #c0392b;
+    color: #8b2018;
+    padding: var(--space-xs) var(--space-sm);
+    font-size: var(--fs-sm);
+}

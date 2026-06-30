@@ -2,125 +2,191 @@
 
 /* ========================================================================
    CartContext.js
-   Estado global del carrito. Cliente-only porque usa localStorage y eventos
-   del navegador. En Next.js, la directiva 'use client' marca este módulo
-   (y todos sus consumidores) como parte del bundle del cliente.
+   Estado global del carrito persistido en Supabase (tabla cart_items).
+   Reemplaza al carrito localStorage de la fase anterior.
+
+   Reglas:
+     · Si NO hay sesión: el carrito viene vacío y addItem redirige a /login.
+       (Decisión de diseño: como la tabla es por user_id y RLS exige
+       auth.uid() = user_id, agregar al carrito sin sesión no tendría
+       a dónde escribir).
+     · Si hay sesión: leemos cart_items joineando productos para tener
+       nombre/precio/imagen al render. Insert/update/delete van directo
+       a Supabase y refrescamos el estado local.
+
+   Forma externa que consumen los componentes (no cambia respecto a antes):
+     · items: [{producto_id, sku, name, price, image, qty}]
+     · count, subtotal
+     · addItem(product, qty), changeQty(sku, delta), removeItem(sku), clearCart()
    ======================================================================== */
 
 import {
     createContext,
+    useCallback,
     useContext,
     useEffect,
-    useReducer,
+    useMemo,
     useState,
 } from 'react';
+import { useRouter } from 'next/navigation';
+import { createClient } from '@/lib/supabase/client';
 
 const CartContext = createContext(null);
 
-// Versionada por si en el futuro cambia la estructura del item.
-const STORAGE_KEY = 'cimat-cart-v1';
+// Lee las filas del carrito del usuario actual joineando con productos
+// para tener el detalle visual (name/price/image) en una sola query.
+async function fetchCart(supabase) {
+    const { data, error } = await supabase
+        .from('cart_items')
+        .select('quantity, productos (id, sku, name, price, image)')
+        .order('id', { ascending: true });
 
-// Reducer puro: recibe estado + acción, devuelve estado nuevo. Nunca muta.
-function cartReducer(state, action) {
-    switch (action.type) {
-        case 'HYDRATE': {
-            // Reemplaza el estado entero con lo guardado en localStorage o
-            // sincronizado desde otra pestaña.
-            return Array.isArray(action.payload) ? action.payload : state;
-        }
-        case 'ADD': {
-            const { product, qty } = action.payload;
-            const existing = state.find((i) => i.sku === product.sku);
-            if (existing) {
-                return state.map((i) =>
-                    i.sku === product.sku ? { ...i, qty: i.qty + qty } : i
-                );
-            }
-            return [
-                ...state,
-                {
-                    sku: product.sku,
-                    name: product.name,
-                    price: product.price,
-                    image: product.image || '',
-                    qty,
-                },
-            ];
-        }
-        case 'CHANGE_QTY': {
-            const { sku, delta } = action.payload;
-            return state
-                .map((i) => (i.sku === sku ? { ...i, qty: i.qty + delta } : i))
-                .filter((i) => i.qty > 0);
-        }
-        case 'REMOVE':
-            return state.filter((i) => i.sku !== action.payload.sku);
-        case 'CLEAR':
-            return [];
-        default:
-            return state;
+    if (error) {
+        console.error('Error leyendo carrito:', error);
+        return [];
     }
+
+    // Aplanar al shape que esperan los componentes.
+    return (data ?? [])
+        .filter((row) => row.productos)
+        .map((row) => ({
+            producto_id: row.productos.id,
+            sku: row.productos.sku,
+            name: row.productos.name,
+            price: row.productos.price,
+            image: row.productos.image,
+            qty: row.quantity,
+        }));
 }
 
 export function CartProvider({ children }) {
-    // Empezamos vacío para que el primer render del servidor (SSR) y del cliente
-    // coincidan. Si arrancáramos con datos de localStorage, el server tendría
-    // un valor distinto y React tiraría error de hidratación.
-    const [items, dispatch] = useReducer(cartReducer, []);
+    const [items, setItems] = useState([]);
+    const [user, setUser] = useState(null);
     const [hydrated, setHydrated] = useState(false);
+    const router = useRouter();
 
-    // 1) Hidratar desde localStorage en el cliente, después del primer render.
+    // Cliente singleton por mount: una instancia, reutilizada en cada call.
+    const supabase = useMemo(() => createClient(), []);
+
+    // 1) Sesión inicial + suscripción a cambios.
     useEffect(() => {
-        try {
-            const raw = localStorage.getItem(STORAGE_KEY);
-            if (raw) {
-                const parsed = JSON.parse(raw);
-                if (Array.isArray(parsed) && parsed.length > 0) {
-                    dispatch({ type: 'HYDRATE', payload: parsed });
-                }
+        let active = true;
+
+        supabase.auth.getUser().then(async ({ data }) => {
+            if (!active) return;
+            setUser(data.user);
+            if (data.user) {
+                setItems(await fetchCart(supabase));
             }
-        } catch {
-            /* JSON corrupto → ignorar y arrancar vacío */
-        }
-        setHydrated(true);
-    }, []);
+            setHydrated(true);
+        });
 
-    // 2) Persistir cambios — solo después de la hidratación inicial, así no
-    //    pisamos el localStorage con [] en el primer render.
-    useEffect(() => {
-        if (!hydrated) return;
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
-    }, [items, hydrated]);
-
-    // 3) Sincronización entre pestañas: si otra pestaña modifica localStorage,
-    //    refrescamos nuestro estado vía la acción HYDRATE.
-    useEffect(() => {
-        function handleStorage(e) {
-            if (e.key === STORAGE_KEY && e.newValue) {
-                try {
-                    const next = JSON.parse(e.newValue);
-                    if (Array.isArray(next)) {
-                        dispatch({ type: 'HYDRATE', payload: next });
-                    }
-                } catch {
-                    /* ignorar */
-                }
+        const {
+            data: { subscription },
+        } = supabase.auth.onAuthStateChange(async (_event, session) => {
+            const u = session?.user ?? null;
+            setUser(u);
+            if (u) {
+                setItems(await fetchCart(supabase));
+            } else {
+                setItems([]);
             }
-        }
-        window.addEventListener('storage', handleStorage);
-        return () => window.removeEventListener('storage', handleStorage);
-    }, []);
+        });
+
+        return () => {
+            active = false;
+            subscription.unsubscribe();
+        };
+    }, [supabase]);
+
+    const refresh = useCallback(async () => {
+        if (!user) return;
+        setItems(await fetchCart(supabase));
+    }, [supabase, user]);
+
+    const addItem = useCallback(
+        async (product, qty = 1) => {
+            if (!user) {
+                router.push('/login');
+                return;
+            }
+            // cart_items tiene unique(user_id, producto_id). Buscamos
+            // primero y decidimos insert vs update (no hay increment
+            // nativo en supabase-js).
+            const existing = items.find((i) => i.producto_id === product.id);
+            if (existing) {
+                await supabase
+                    .from('cart_items')
+                    .update({ quantity: existing.qty + qty })
+                    .eq('user_id', user.id)
+                    .eq('producto_id', product.id);
+            } else {
+                await supabase.from('cart_items').insert({
+                    user_id: user.id,
+                    producto_id: product.id,
+                    quantity: qty,
+                });
+            }
+            await refresh();
+        },
+        [supabase, user, items, refresh, router]
+    );
+
+    const changeQty = useCallback(
+        async (sku, delta) => {
+            if (!user) return;
+            const item = items.find((i) => i.sku === sku);
+            if (!item) return;
+            const newQty = item.qty + delta;
+            if (newQty <= 0) {
+                await supabase
+                    .from('cart_items')
+                    .delete()
+                    .eq('user_id', user.id)
+                    .eq('producto_id', item.producto_id);
+            } else {
+                await supabase
+                    .from('cart_items')
+                    .update({ quantity: newQty })
+                    .eq('user_id', user.id)
+                    .eq('producto_id', item.producto_id);
+            }
+            await refresh();
+        },
+        [supabase, user, items, refresh]
+    );
+
+    const removeItem = useCallback(
+        async (sku) => {
+            if (!user) return;
+            const item = items.find((i) => i.sku === sku);
+            if (!item) return;
+            await supabase
+                .from('cart_items')
+                .delete()
+                .eq('user_id', user.id)
+                .eq('producto_id', item.producto_id);
+            await refresh();
+        },
+        [supabase, user, items, refresh]
+    );
+
+    const clearCart = useCallback(async () => {
+        if (!user) return;
+        await supabase.from('cart_items').delete().eq('user_id', user.id);
+        setItems([]);
+    }, [supabase, user]);
 
     const value = {
         items,
         count: items.reduce((acc, i) => acc + i.qty, 0),
         subtotal: items.reduce((acc, i) => acc + i.price * i.qty, 0),
-        addItem: (product, qty = 1) =>
-            dispatch({ type: 'ADD', payload: { product, qty } }),
-        changeQty: (sku, delta) =>
-            dispatch({ type: 'CHANGE_QTY', payload: { sku, delta } }),
-        removeItem: (sku) => dispatch({ type: 'REMOVE', payload: { sku } }),
-        clearCart: () => dispatch({ type: 'CLEAR' }),
+        hydrated,
+        isAuthenticated: Boolean(user),
+        addItem,
+        changeQty,
+        removeItem,
+        clearCart,
     };
 
     return (

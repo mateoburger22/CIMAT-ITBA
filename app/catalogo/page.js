@@ -1,12 +1,14 @@
 /* ========================================================================
    app/catalogo/page.js — Catálogo (Server Component)
-   La página en sí es estática (lee data al renderizar). Las cards de adentro
-   (<ProductCard>) son Client Components — Next se ocupa de la frontera.
+   Server Component asíncrono: en el render lee la tabla `productos` desde
+   Supabase. Las cards (<ProductCard>) son Client Components — Next se
+   ocupa de la frontera entre server y cliente.
    ======================================================================== */
 
 import Link from 'next/link';
 import ProductCard from '@/components/ProductCard';
-import { productos, lineas } from '@/data/productos';
+import { lineas } from '@/data/productos';
+import { getAllProductos } from '@/lib/productos';
 import styles from './page.module.css';
 
 export const metadata = {
@@ -15,7 +17,9 @@ export const metadata = {
         'Catálogo de cintas industriales: reparación con fibra de vidrio, aislación eléctrica y sellado de tuberías.',
 };
 
-export default function Catalogo() {
+export default async function Catalogo() {
+    const productos = await getAllProductos();
+
     return (
         <>
             <section className={styles.pageHeader}>
