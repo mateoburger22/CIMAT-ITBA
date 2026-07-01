@@ -144,8 +144,10 @@ export async function placeOrderAction(_prevState, formData) {
         // (www.mercadopago.com.ar), que rechaza los pagos de prueba con
         // "no se pudo procesar". El sandbox_init_point apunta a
         // sandbox.mercadopago.com.ar, el entorno correcto para probar.
-        // En producción (MP_USE_SANDBOX distinto de 'true') usamos init_point.
-        const useSandbox = process.env.MP_USE_SANDBOX === 'true';
+        //
+        // Default: SANDBOX. Recién cuando pasemos a producción (credenciales
+        // reales) hay que setear MP_USE_SANDBOX=false para usar init_point.
+        const useSandbox = process.env.MP_USE_SANDBOX !== 'false';
         initPoint =
             useSandbox && preference.sandbox_init_point
                 ? preference.sandbox_init_point
