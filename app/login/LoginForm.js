@@ -1,24 +1,24 @@
-'use client';
-
 /* ========================================================================
    app/login/LoginForm.js
-   Form de login (Client Component). Usa el hook `useActionState` para:
-     · invocar la Server Action `loginAction` al hacer submit,
-     · mantener en estado el `{ error }` que devuelva,
-     · exponer `isPending` mientras la action está en vuelo.
-   Si la action redirige, este componente ni siquiera ve la respuesta.
+   Form de login. Postea normal (POST) al Route Handler /api/auth/login,
+   que valida, crea la sesión (escribe la cookie) y redirige.
+
+   No usa Server Action porque en esta versión de Next las cookies escritas
+   dentro de una Server Action no persistían. El `errorMessage` lo decide la
+   página leyendo ?error=... de la URL cuando el login falla.
    ======================================================================== */
 
-import { useActionState } from 'react';
 import Link from 'next/link';
-import { loginAction } from './actions';
 import styles from './page.module.css';
 
-export default function LoginForm() {
-    const [state, formAction, isPending] = useActionState(loginAction, null);
-
+export default function LoginForm({ errorMessage }) {
     return (
-        <form action={formAction} className={styles.form} noValidate>
+        <form
+            method="post"
+            action="/api/auth/login"
+            className={styles.form}
+            noValidate
+        >
             <div className={styles.field}>
                 <label htmlFor="email" className={styles.label}>
                     Email
@@ -45,18 +45,14 @@ export default function LoginForm() {
                 />
             </div>
 
-            {state?.error && (
+            {errorMessage && (
                 <p className={styles.error} role="alert">
-                    {state.error}
+                    {errorMessage}
                 </p>
             )}
 
-            <button
-                type="submit"
-                className="btn btn-primary"
-                disabled={isPending}
-            >
-                {isPending ? 'Ingresando…' : 'Ingresar'}
+            <button type="submit" className="btn btn-primary">
+                Ingresar
             </button>
 
             <p className={styles.altLink}>

@@ -1,15 +1,20 @@
-'use client';
+/* ========================================================================
+   app/registro/RegistroForm.js
+   Form de alta. Postea normal (POST) al Route Handler /api/auth/registro.
+   El `errorMessage` lo decide la página leyendo ?error=... de la URL.
+   ======================================================================== */
 
-import { useActionState } from 'react';
 import Link from 'next/link';
-import { registerAction } from './actions';
 import styles from './page.module.css';
 
-export default function RegistroForm() {
-    const [state, formAction, isPending] = useActionState(registerAction, null);
-
+export default function RegistroForm({ errorMessage }) {
     return (
-        <form action={formAction} className={styles.form} noValidate>
+        <form
+            method="post"
+            action="/api/auth/registro"
+            className={styles.form}
+            noValidate
+        >
             <div className={styles.field}>
                 <label htmlFor="full_name" className={styles.label}>
                     Nombre completo
@@ -63,18 +68,14 @@ export default function RegistroForm() {
                 />
             </div>
 
-            {state?.error && (
+            {errorMessage && (
                 <p className={styles.error} role="alert">
-                    {state.error}
+                    {errorMessage}
                 </p>
             )}
 
-            <button
-                type="submit"
-                className="btn btn-primary"
-                disabled={isPending}
-            >
-                {isPending ? 'Creando cuenta…' : 'Crear cuenta'}
+            <button type="submit" className="btn btn-primary">
+                Crear cuenta
             </button>
 
             <p className={styles.altLink}>

@@ -17,7 +17,6 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
-import { signOut } from '@/lib/auth/actions';
 import styles from './AuthMenu.module.css';
 
 export default function AuthMenu() {
@@ -63,7 +62,7 @@ export default function AuthMenu() {
             <Link href="/cuenta/pedidos" className={styles.greeting}>
                 Hola, {displayName}
             </Link>
-            <form action={signOut}>
+            <form method="post" action="/api/auth/logout">
                 <button type="submit" className={styles.logoutBtn}>
                     Salir
                 </button>

@@ -1,8 +1,8 @@
 /* ========================================================================
    app/login/page.js
-   Server Component: arma el shell de la página (breadcrumb, header) y
-   delega el form a un Client Component (`LoginForm`) para poder usar
-   `useActionState`. Si ya hay sesión, redirigimos a /catalogo.
+   Server Component: arma el shell de la página y delega el form a LoginForm.
+   Si ya hay sesión, redirige a /catalogo. Si el login falló, lee ?error=...
+   de la URL y le pasa el mensaje al form.
    ======================================================================== */
 
 import Link from 'next/link';
@@ -15,12 +15,20 @@ export const metadata = {
     title: 'Iniciar sesión — Polytape',
 };
 
-export default async function LoginPage() {
+const MENSAJES_ERROR = {
+    credenciales: 'Credenciales inválidas.',
+    campos: 'Completá email y contraseña.',
+};
+
+export default async function LoginPage({ searchParams }) {
     const supabase = await createClient();
     const {
         data: { user },
     } = await supabase.auth.getUser();
     if (user) redirect('/catalogo');
+
+    const sp = await searchParams;
+    const errorMessage = MENSAJES_ERROR[sp?.error] ?? null;
 
     return (
         <>
@@ -41,7 +49,7 @@ export default async function LoginPage() {
 
             <section className={styles.section}>
                 <div className={styles.formWrap}>
-                    <LoginForm />
+                    <LoginForm errorMessage={errorMessage} />
                 </div>
             </section>
         </>
