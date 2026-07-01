@@ -139,15 +139,13 @@ export async function placeOrderAction(_prevState, formData) {
             },
         });
 
-        // En modo PRUEBA (credenciales de test) hay que mandar al comprador al
-        // checkout de SANDBOX. El init_point apunta al checkout REAL
-        // (www.mercadopago.com.ar), que rechaza los pagos de prueba con
-        // "no se pudo procesar". El sandbox_init_point apunta a
-        // sandbox.mercadopago.com.ar, el entorno correcto para probar.
-        //
-        // Default: SANDBOX. Recién cuando pasemos a producción (credenciales
-        // reales) hay que setear MP_USE_SANDBOX=false para usar init_point.
-        const useSandbox = process.env.MP_USE_SANDBOX !== 'false';
+        // Siempre usamos init_point (www.mercadopago.com.ar). En el modelo
+        // actual de MP se testea acá mismo, logueado con usuarios de PRUEBA;
+        // el viejo sandbox_init_point (sandbox.mercadopago.com.ar) está
+        // deprecado y entra en loop de redirecciones (ERR_TOO_MANY_REDIRECTS).
+        // Dejamos un escape a sandbox_init_point solo si alguien fuerza
+        // MP_USE_SANDBOX=true, pero por defecto NO se usa.
+        const useSandbox = process.env.MP_USE_SANDBOX === 'true';
         initPoint =
             useSandbox && preference.sandbox_init_point
                 ? preference.sandbox_init_point
