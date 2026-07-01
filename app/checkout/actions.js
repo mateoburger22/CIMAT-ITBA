@@ -139,7 +139,17 @@ export async function placeOrderAction(_prevState, formData) {
             },
         });
 
-        initPoint = preference.init_point;
+        // En modo PRUEBA (credenciales de test) hay que mandar al comprador al
+        // checkout de SANDBOX. El init_point apunta al checkout REAL
+        // (www.mercadopago.com.ar), que rechaza los pagos de prueba con
+        // "no se pudo procesar". El sandbox_init_point apunta a
+        // sandbox.mercadopago.com.ar, el entorno correcto para probar.
+        // En producción (MP_USE_SANDBOX distinto de 'true') usamos init_point.
+        const useSandbox = process.env.MP_USE_SANDBOX === 'true';
+        initPoint =
+            useSandbox && preference.sandbox_init_point
+                ? preference.sandbox_init_point
+                : preference.init_point;
 
         // Guardamos el id de preferencia para trazabilidad. Va por el cliente
         // admin porque `orders` no tiene política de UPDATE para el usuario.
