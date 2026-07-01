@@ -102,15 +102,21 @@ export default async function Confirmacion({ params, searchParams }) {
         year: 'numeric',
     });
 
+    // El encabezado depende del estado REAL del pago. Una orden 'pendiente'
+    // todavía no se pagó (el usuario canceló, volvió sin pagar, o el pago no se
+    // acreditó aún), así que no la anunciamos como compra confirmada.
+    const pagada = order.status === 'pagada';
+    const heading = pagada ? '¡Gracias por tu compra!' : 'Tu pago está pendiente';
+    const intro = pagada
+        ? `Tu pedido #${order.id} quedó confirmado el ${fecha}. ¡Gracias!`
+        : `Registramos tu pedido #${order.id} el ${fecha}, pero todavía no recibimos la confirmación del pago. Si ya pagaste, puede tardar unos minutos en acreditarse.`;
+
     return (
         <section className={styles.confirmation}>
             <div className={styles.inner}>
                 <p className="eyebrow">CIMAT</p>
-                <h1>¡Gracias por tu compra!</h1>
-                <p className={styles.intro}>
-                    Tu pedido <strong>#{order.id}</strong> quedó registrado el{' '}
-                    {fecha} con estado <em>{order.status}</em>.
-                </p>
+                <h1>{heading}</h1>
+                <p className={styles.intro}>{intro}</p>
 
                 <div className={styles.card}>
                     <h2>Resumen del pedido</h2>

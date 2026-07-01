@@ -132,10 +132,10 @@ export async function placeOrderAction(_prevState, formData) {
                 auto_return: 'approved',
                 // URL server-a-servidor donde MP nos notifica el pago.
                 notification_url: `${site}/api/mp/webhook`,
-                payer: {
-                    name: shipping.shipping_full_name,
-                    email: shipping.shipping_email,
-                },
+                // No mandamos `payer`: dejamos que MP tome al pagador de la
+                // sesión (comprador de prueba o invitado). Fijar payer.email acá
+                // choca con el comprador logueado y puede DESHABILITAR el botón
+                // de pagar en el sandbox.
             },
         });
 
