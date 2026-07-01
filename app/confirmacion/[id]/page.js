@@ -11,7 +11,10 @@
 
 import Link from 'next/link';
 import { notFound, redirect } from 'next/navigation';
+import { Payment } from 'mercadopago';
 import { createClient } from '@/lib/supabase/server';
+import { createAdminClient } from '@/lib/supabase/admin';
+import { mpClient } from '@/lib/mercadopago';
 import { formatPrice } from '@/data/productos';
 import styles from './page.module.css';
 
@@ -19,8 +22,9 @@ export const metadata = {
     title: 'Pedido confirmado — Polytape',
 };
 
-export default async function Confirmacion({ params }) {
+export default async function Confirmacion({ params, searchParams }) {
     const { id } = await params;
+    const sp = await searchParams;
     const orderId = Number(id);
     if (!Number.isInteger(orderId)) notFound();
 
@@ -43,6 +47,48 @@ export default async function Confirmacion({ params }) {
     // Si la orden no existe o no es del usuario actual (RLS la oculta),
     // mostramos 404 para no filtrar la existencia de ids ajenos.
     if (!order) notFound();
+
+    // Respaldo por redirect: si la orden sigue 'pendiente' y MP nos devolvió
+    // con datos del pago en la URL (auto_return agrega payment_id/collection_id),
+    // verificamos el pago contra la API de MP y actualizamos. Esto cubre el caso
+    // de que el webhook tarde o no llegue. Igual que en el webhook, la fuente de
+    // verdad es la consulta a MP, no los query params (que podrían falsearse).
+    if (order.status === 'pendiente') {
+        const paymentId = sp?.payment_id ?? sp?.collection_id;
+        if (paymentId) {
+            try {
+                const payment = await new Payment(mpClient()).get({
+                    id: paymentId,
+                });
+                if (
+                    payment.status === 'approved' &&
+                    String(payment.external_reference) === String(order.id)
+                ) {
+                    const admin = createAdminClient();
+                    const { data: updated } = await admin
+                        .from('orders')
+                        .update({
+                            status: 'pagada',
+                            mp_payment_id: String(payment.id),
+                        })
+                        .eq('id', order.id)
+                        .eq('status', 'pendiente') // idempotente vs. el webhook
+                        .select('user_id')
+                        .maybeSingle();
+                    if (updated) {
+                        await admin
+                            .from('cart_items')
+                            .delete()
+                            .eq('user_id', updated.user_id);
+                        order.status = 'pagada'; // reflejarlo en esta misma página
+                    }
+                }
+            } catch {
+                // Si la verificación falla, dejamos la orden como está: el
+                // webhook la actualizará. No rompemos la página de confirmación.
+            }
+        }
+    }
 
     const { data: items } = await supabase
         .from('order_items')

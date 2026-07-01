@@ -12,13 +12,19 @@
      2. Leer cart_items joineando productos. Si vacío → error.
      3. Insertar fila en `orders` con el total real y los datos de envío.
      4. Insertar las filas en `order_items` (snapshot histórico).
-     5. Vaciar cart_items.
-     6. Redirigir a /confirmacion/[orderId].
+     5. Crear la PREFERENCIA en Mercado Pago (Checkout Pro).
+     6. Redirigir al usuario a la pasarela de MP (init_point).
+
+   OJO: el carrito NO se vacía acá. Se vacía recién cuando el pago queda
+   'approved' (lo hace el webhook /api/mp/webhook, o el respaldo de la página
+   de confirmación). Así, si el usuario cancela el pago, no pierde el carrito.
    ======================================================================== */
 
 import { redirect } from 'next/navigation';
-import { revalidatePath } from 'next/cache';
+import { Preference } from 'mercadopago';
 import { createClient } from '@/lib/supabase/server';
+import { createAdminClient } from '@/lib/supabase/admin';
+import { mpClient } from '@/lib/mercadopago';
 
 export async function placeOrderAction(_prevState, formData) {
     const supabase = await createClient();
@@ -99,10 +105,58 @@ export async function placeOrderAction(_prevState, formData) {
         return { error: 'No pudimos guardar los productos del pedido.' };
     }
 
-    // 7) Vaciar el carrito
-    await supabase.from('cart_items').delete().eq('user_id', user.id);
+    // 7) Crear la preferencia de pago en Mercado Pago (Checkout Pro).
+    //    external_reference = id de nuestra orden: es el hilo que nos permite,
+    //    cuando MP nos avise del pago, saber A QUÉ orden corresponde.
+    const site = process.env.NEXT_PUBLIC_SITE_URL;
+    let initPoint;
+    try {
+        const preference = await new Preference(mpClient()).create({
+            body: {
+                items: validCart.map((row) => ({
+                    id: String(row.productos.id),
+                    title: row.productos.name,
+                    quantity: row.quantity,
+                    unit_price: row.productos.price,
+                    currency_id: 'ARS',
+                })),
+                external_reference: String(order.id),
+                // A dónde vuelve el usuario según el resultado del pago. Siempre
+                // a la confirmación: ahí mostramos el estado y verificamos.
+                back_urls: {
+                    success: `${site}/confirmacion/${order.id}`,
+                    pending: `${site}/confirmacion/${order.id}`,
+                    failure: `${site}/confirmacion/${order.id}`,
+                },
+                // MP redirige solo al aprobarse (sin que el usuario toque "volver").
+                auto_return: 'approved',
+                // URL server-a-servidor donde MP nos notifica el pago.
+                notification_url: `${site}/api/mp/webhook`,
+                payer: {
+                    name: shipping.shipping_full_name,
+                    email: shipping.shipping_email,
+                },
+            },
+        });
 
-    // 8) Redirigir a la página de confirmación con el id de la orden
-    revalidatePath('/', 'layout');
-    redirect(`/confirmacion/${order.id}`);
+        initPoint = preference.init_point;
+
+        // Guardamos el id de preferencia para trazabilidad. Va por el cliente
+        // admin porque `orders` no tiene política de UPDATE para el usuario.
+        await createAdminClient()
+            .from('orders')
+            .update({ mp_preference_id: preference.id })
+            .eq('id', order.id);
+    } catch {
+        // Si MP falla, la orden 'pendiente' quedaría huérfana: la borramos
+        // (order_items cae por ON DELETE CASCADE). Admin porque el usuario no
+        // tiene política de DELETE sobre orders.
+        await createAdminClient().from('orders').delete().eq('id', order.id);
+        return {
+            error: 'No pudimos iniciar el pago con Mercado Pago. Probá de nuevo.',
+        };
+    }
+
+    // 8) Mandar al usuario a pagar. redirect() lanza, así que va FUERA del try.
+    redirect(initPoint);
 }
