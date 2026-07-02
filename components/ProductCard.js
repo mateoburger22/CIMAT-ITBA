@@ -40,7 +40,13 @@ export default function ProductCard({ product }) {
 
     return (
         <article className={styles.card}>
-            <div className={styles.visual}>
+            {/* La foto también es un link a la ficha: en ecommerce el usuario
+                espera poder clickear la imagen para verla en grande. */}
+            <Link
+                href={`/productos/${slug}`}
+                className={styles.visual}
+                aria-label={`Ver ${product.name} en detalle`}
+            >
                 {product.image && (
                     <Image
                         src={product.image}
@@ -50,7 +56,7 @@ export default function ProductCard({ product }) {
                         style={{ objectFit: 'contain', padding: 'var(--space-xs)' }}
                     />
                 )}
-            </div>
+            </Link>
 
             <div className={styles.body}>
                 <p className={styles.sku}>{product.sku}</p>

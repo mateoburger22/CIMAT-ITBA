@@ -18,8 +18,10 @@ import { mpClient } from '@/lib/mercadopago';
 import { formatPrice } from '@/data/productos';
 import styles from './page.module.css';
 
+// Título neutro: esta página también se muestra cuando el pago sigue
+// pendiente, así que no puede afirmar "confirmado" (el h1 sí es dinámico).
 export const metadata = {
-    title: 'Pedido confirmado — Polytape',
+    title: 'Tu pedido — Polytape',
 };
 
 export default async function Confirmacion({ params, searchParams }) {

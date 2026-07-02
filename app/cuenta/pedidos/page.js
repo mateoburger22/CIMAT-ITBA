@@ -23,9 +23,11 @@ export default async function MisPedidos() {
     } = await supabase.auth.getUser();
     if (!user) redirect('/login');
 
+    // El select anidado `order_items (…)` trae los renglones de cada pedido
+    // en la misma query (Supabase resuelve el join por la FK order_id).
     const { data: orders } = await supabase
         .from('orders')
-        .select('id, status, total, created_at')
+        .select('id, status, total, created_at, order_items (sku, name, quantity)')
         .order('created_at', { ascending: false });
 
     return (
@@ -76,6 +78,13 @@ export default async function MisPedidos() {
                                     >
                                         Ver detalle →
                                     </Link>
+                                    <ul className={styles.rowItems}>
+                                        {(o.order_items ?? []).map((item) => (
+                                            <li key={item.sku}>
+                                                {item.quantity}× {item.name}
+                                            </li>
+                                        ))}
+                                    </ul>
                                 </li>
                             );
                         })}

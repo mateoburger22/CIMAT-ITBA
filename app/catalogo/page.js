@@ -30,7 +30,12 @@ export default async function Catalogo() {
                             <li aria-current="page">Catálogo</li>
                         </ol>
                     </nav>
-                    <p className="eyebrow">Catálogo de productos</p>
+                    <p className="eyebrow">Cintas adhesivas industriales</p>
+                    <h1>Catálogo de productos</h1>
+                    <p className={styles.pageLead}>
+                        Cuatro líneas técnicas. Filtrá por línea o recorré el
+                        catálogo completo.
+                    </p>
                 </div>
             </section>
 

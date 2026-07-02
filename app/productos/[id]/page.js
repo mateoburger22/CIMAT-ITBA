@@ -11,10 +11,10 @@
 
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
-import Image from 'next/image';
 import { formatPrice, lineas } from '@/data/productos';
 import { getAllProductos, getProductoBySlug } from '@/lib/productos';
 import AddToCartBlock from '@/components/AddToCartBlock';
+import ProductImageLightbox from '@/components/ProductImageLightbox';
 import styles from './page.module.css';
 
 // generateStaticParams le dice a Next qué valores de [id] existen.
@@ -76,17 +76,12 @@ export default async function ProductoDetalle({ params }) {
             <section className={styles.product}>
                 <div className={styles.productInner}>
                     <div className={styles.visual}>
+                        {/* Cliente: al clickear la foto se abre a pantalla
+                            completa (lightbox). El resto queda en Server. */}
                         {product.image && (
-                            <Image
+                            <ProductImageLightbox
                                 src={product.image}
                                 alt={product.name}
-                                fill
-                                sizes="(max-width: 900px) 100vw, 50vw"
-                                style={{
-                                    objectFit: 'contain',
-                                    padding: 'var(--space-lg)',
-                                }}
-                                priority
                             />
                         )}
                     </div>
