@@ -1,6 +1,6 @@
 /** @type {import('next').NextConfig} */
-const nextConfig = {
-  /* config options here */
-};
+// Sin opciones custom: los defaults de Next (App Router, optimización de
+// imágenes, minificación) alcanzan para este proyecto.
+const nextConfig = {};
 
 export default nextConfig;

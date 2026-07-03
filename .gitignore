@@ -55,3 +55,6 @@ Thumbs.db
 # Temporales del proyecto
 .tmp_*
 *.tmp
+
+# Capturas temporales de trabajo (no son assets del sitio)
+screenshots/

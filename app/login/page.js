@@ -18,6 +18,7 @@ export const metadata = {
 const MENSAJES_ERROR = {
     credenciales: 'Credenciales inválidas.',
     campos: 'Completá email y contraseña.',
+    email: 'El email no tiene un formato válido.',
 };
 
 export default async function LoginPage({ searchParams }) {

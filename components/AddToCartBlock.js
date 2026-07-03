@@ -29,7 +29,13 @@ export default function AddToCartBlock({ product }) {
 
     return (
         <div className={styles.block}>
-            <div className={styles.qty} aria-label="Cantidad a agregar">
+            {/* role="group": sin rol, el aria-label de un div no se anuncia
+                en los lectores de pantalla. */}
+            <div
+                className={styles.qty}
+                role="group"
+                aria-label="Cantidad a agregar"
+            >
                 <button
                     type="button"
                     className={styles.qtyBtn}

@@ -35,6 +35,9 @@ export const lineas = [
 ];
 
 // Helper para formatear precios en pesos argentinos. No toca DB.
+// La guarda evita que un total null/undefined (fila vieja, dato faltante)
+// tire un TypeError y rompa toda la página por un solo dato malo.
 export function formatPrice(value) {
-    return '$' + value.toLocaleString('es-AR');
+    const n = Number(value);
+    return '$' + (Number.isFinite(n) ? n : 0).toLocaleString('es-AR');
 }

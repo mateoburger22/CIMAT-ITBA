@@ -9,11 +9,13 @@
 
    Pasos:
      1. Validar sesión (RLS ya lo hace, pero queremos un error claro).
-     2. Leer cart_items joineando productos. Si vacío → error.
-     3. Insertar fila en `orders` con el total real y los datos de envío.
-     4. Insertar las filas en `order_items` (snapshot histórico).
-     5. Crear la PREFERENCIA en Mercado Pago (Checkout Pro).
-     6. Redirigir al usuario a la pasarela de MP (init_point).
+     2. Validar los datos de envío (presencia + formato, server-side).
+     3. Leer cart_items joineando productos. Si vacío → error.
+     4. Crear la fila en `orders` (o REUSAR la 'pendiente' del usuario,
+        para que reintentar el checkout no duplique órdenes).
+     5. Insertar las filas en `order_items` (snapshot histórico).
+     6. Crear la PREFERENCIA en Mercado Pago (Checkout Pro).
+     7. Redirigir al usuario a la pasarela de MP (init_point).
 
    OJO: el carrito NO se vacía acá. Se vacía recién cuando el pago queda
    'approved' (lo hace el webhook /api/mp/webhook, o el respaldo de la página
@@ -25,8 +27,21 @@ import { Preference } from 'mercadopago';
 import { createClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { mpClient } from '@/lib/mercadopago';
+import { isValidEmail, isValidPostalCode, isValidPhone } from '@/lib/validators';
 
 export async function placeOrderAction(_prevState, formData) {
+    // 0) Config: sin una URL pública válida, MP no puede armar los back_urls
+    //    ni el webhook. Mejor fallar temprano y con log claro que con el
+    //    error genérico de MP.
+    const site = process.env.NEXT_PUBLIC_SITE_URL;
+    if (!site || !site.startsWith('http')) {
+        console.error(
+            '[checkout] NEXT_PUBLIC_SITE_URL falta o no es una URL:',
+            site
+        );
+        return { error: 'El checkout no está configurado. Avisanos por contacto.' };
+    }
+
     const supabase = await createClient();
 
     // 1) Sesión
@@ -37,7 +52,8 @@ export async function placeOrderAction(_prevState, formData) {
         return { error: 'Tu sesión expiró. Iniciá sesión de nuevo.' };
     }
 
-    // 2) Datos de envío del form
+    // 2) Datos de envío del form: presencia + formato (el server re-valida
+    //    siempre; lo que valida el navegador se puede saltear con F12).
     const shipping = {
         shipping_full_name: String(formData.get('nombre') ?? '').trim(),
         shipping_email: String(formData.get('email') ?? '').trim(),
@@ -48,6 +64,15 @@ export async function placeOrderAction(_prevState, formData) {
     };
     if (Object.values(shipping).some((v) => !v)) {
         return { error: 'Completá todos los datos de envío.' };
+    }
+    if (!isValidEmail(shipping.shipping_email)) {
+        return { error: 'El email no tiene un formato válido.' };
+    }
+    if (!isValidPhone(shipping.shipping_phone)) {
+        return { error: 'El teléfono no tiene un formato válido.' };
+    }
+    if (!isValidPostalCode(shipping.shipping_postal_code)) {
+        return { error: 'El código postal debe ser tipo 1425 o C1425DKE.' };
     }
 
     // 3) Carrito real (server-side, ignoramos el cliente)
@@ -70,25 +95,62 @@ export async function placeOrderAction(_prevState, formData) {
         0
     );
 
-    // 5) Insertar la orden
-    const { data: order, error: orderError } = await supabase
+    // 5) Crear la orden... o REUSAR la 'pendiente' que ya tenga el usuario.
+    //    Como el carrito no se vacía hasta que el pago se aprueba, reintentar
+    //    el checkout (doble click, dos pestañas, volver de MP sin pagar)
+    //    crearía órdenes duplicadas. Reusando la pendiente, cada usuario
+    //    tiene a lo sumo UNA orden esperando pago.
+    const admin = createAdminClient();
+    const { data: pendings } = await supabase
         .from('orders')
-        .insert({
-            user_id: user.id,
-            status: 'pendiente',
-            total,
-            ...shipping,
-        })
         .select('id')
-        .single();
+        .eq('user_id', user.id)
+        .eq('status', 'pendiente')
+        .order('id', { ascending: false })
+        .limit(1);
 
-    if (orderError || !order) {
-        return { error: 'No pudimos crear el pedido. Probá de nuevo.' };
+    let orderId;
+    if (pendings && pendings.length > 0) {
+        // Reuso: piso datos de envío y total, y regenero los items abajo.
+        // Va por admin porque el usuario no tiene política de UPDATE/DELETE
+        // sobre orders/order_items (a propósito: solo el server decide esto).
+        orderId = pendings[0].id;
+        const { error: updateError } = await admin
+            .from('orders')
+            .update({ total, ...shipping })
+            .eq('id', orderId)
+            .eq('status', 'pendiente');
+        if (updateError) {
+            return { error: 'No pudimos crear el pedido. Probá de nuevo.' };
+        }
+        const { error: wipeError } = await admin
+            .from('order_items')
+            .delete()
+            .eq('order_id', orderId);
+        if (wipeError) {
+            return { error: 'No pudimos crear el pedido. Probá de nuevo.' };
+        }
+    } else {
+        const { data: order, error: orderError } = await supabase
+            .from('orders')
+            .insert({
+                user_id: user.id,
+                status: 'pendiente',
+                total,
+                ...shipping,
+            })
+            .select('id')
+            .single();
+
+        if (orderError || !order) {
+            return { error: 'No pudimos crear el pedido. Probá de nuevo.' };
+        }
+        orderId = order.id;
     }
 
     // 6) Insertar los items (copia histórica de sku/name/price)
     const itemsToInsert = validCart.map((row) => ({
-        order_id: order.id,
+        order_id: orderId,
         producto_id: row.productos.id,
         sku: row.productos.sku,
         name: row.productos.name,
@@ -101,14 +163,13 @@ export async function placeOrderAction(_prevState, formData) {
 
     if (itemsError) {
         // La orden ya existe pero sin items: borramos para que no quede huérfana.
-        await supabase.from('orders').delete().eq('id', order.id);
+        await admin.from('orders').delete().eq('id', orderId);
         return { error: 'No pudimos guardar los productos del pedido.' };
     }
 
     // 7) Crear la preferencia de pago en Mercado Pago (Checkout Pro).
     //    external_reference = id de nuestra orden: es el hilo que nos permite,
     //    cuando MP nos avise del pago, saber A QUÉ orden corresponde.
-    const site = process.env.NEXT_PUBLIC_SITE_URL;
     let initPoint;
     try {
         const preference = await new Preference(mpClient()).create({
@@ -120,13 +181,13 @@ export async function placeOrderAction(_prevState, formData) {
                     unit_price: row.productos.price,
                     currency_id: 'ARS',
                 })),
-                external_reference: String(order.id),
+                external_reference: String(orderId),
                 // A dónde vuelve el usuario según el resultado del pago. Siempre
                 // a la confirmación: ahí mostramos el estado y verificamos.
                 back_urls: {
-                    success: `${site}/confirmacion/${order.id}`,
-                    pending: `${site}/confirmacion/${order.id}`,
-                    failure: `${site}/confirmacion/${order.id}`,
+                    success: `${site}/confirmacion/${orderId}`,
+                    pending: `${site}/confirmacion/${orderId}`,
+                    failure: `${site}/confirmacion/${orderId}`,
                 },
                 // MP redirige solo al aprobarse (sin que el usuario toque "volver").
                 auto_return: 'approved',
@@ -153,15 +214,18 @@ export async function placeOrderAction(_prevState, formData) {
 
         // Guardamos el id de preferencia para trazabilidad. Va por el cliente
         // admin porque `orders` no tiene política de UPDATE para el usuario.
-        await createAdminClient()
+        await admin
             .from('orders')
             .update({ mp_preference_id: preference.id })
-            .eq('id', order.id);
-    } catch {
+            .eq('id', orderId);
+    } catch (mpError) {
+        // Logueamos el error REAL (se ve en Vercel) para no depurar a ciegas;
+        // al usuario le mostramos un mensaje simple.
+        console.error('[checkout] error creando la preferencia de MP:', mpError);
         // Si MP falla, la orden 'pendiente' quedaría huérfana: la borramos
         // (order_items cae por ON DELETE CASCADE). Admin porque el usuario no
         // tiene política de DELETE sobre orders.
-        await createAdminClient().from('orders').delete().eq('id', order.id);
+        await admin.from('orders').delete().eq('id', orderId);
         return {
             error: 'No pudimos iniciar el pago con Mercado Pago. Probá de nuevo.',
         };

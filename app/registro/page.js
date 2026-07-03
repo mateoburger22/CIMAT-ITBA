@@ -16,6 +16,7 @@ export const metadata = {
 
 const MENSAJES_ERROR = {
     campos: 'Completá todos los campos.',
+    email: 'El email no tiene un formato válido.',
     corta: 'La contraseña debe tener al menos 6 caracteres.',
     nocoincide: 'Las contraseñas no coinciden.',
     signup: 'No se pudo crear la cuenta. Puede que el email ya esté registrado.',

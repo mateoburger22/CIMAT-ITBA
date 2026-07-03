@@ -72,14 +72,22 @@ export function CartProvider({ children }) {
     useEffect(() => {
         let active = true;
 
-        supabase.auth.getUser().then(async ({ data }) => {
-            if (!active) return;
-            setUser(data.user);
-            if (data.user) {
-                setItems(await fetchCart(supabase));
-            }
-            setHydrated(true);
-        });
+        supabase.auth
+            .getUser()
+            .then(async ({ data }) => {
+                if (!active) return;
+                setUser(data.user);
+                if (data.user) {
+                    setItems(await fetchCart(supabase));
+                }
+                setHydrated(true);
+            })
+            .catch((error) => {
+                // Sin este catch, un fallo de red acá quedaría como
+                // "unhandled rejection" y la página nunca se hidrataría.
+                console.error('Error obteniendo la sesión:', error);
+                if (active) setHydrated(true);
+            });
 
         const {
             data: { subscription },
@@ -114,19 +122,24 @@ export function CartProvider({ children }) {
             // primero y decidimos insert vs update (no hay increment
             // nativo en supabase-js).
             const existing = items.find((i) => i.producto_id === product.id);
+            let error;
             if (existing) {
-                await supabase
+                ({ error } = await supabase
                     .from('cart_items')
                     .update({ quantity: existing.qty + qty })
                     .eq('user_id', user.id)
-                    .eq('producto_id', product.id);
+                    .eq('producto_id', product.id));
             } else {
-                await supabase.from('cart_items').insert({
+                ({ error } = await supabase.from('cart_items').insert({
                     user_id: user.id,
                     producto_id: product.id,
                     quantity: qty,
-                });
+                }));
             }
+            // Si la escritura falló (RLS, red, constraint) lo dejamos logueado
+            // y refrescamos IGUAL: la UI nunca debe mostrar algo distinto de
+            // lo que quedó en la base.
+            if (error) console.error('Error agregando al carrito:', error);
             await refresh();
         },
         [supabase, user, items, refresh, router]
@@ -138,19 +151,21 @@ export function CartProvider({ children }) {
             const item = items.find((i) => i.sku === sku);
             if (!item) return;
             const newQty = item.qty + delta;
+            let error;
             if (newQty <= 0) {
-                await supabase
+                ({ error } = await supabase
                     .from('cart_items')
                     .delete()
                     .eq('user_id', user.id)
-                    .eq('producto_id', item.producto_id);
+                    .eq('producto_id', item.producto_id));
             } else {
-                await supabase
+                ({ error } = await supabase
                     .from('cart_items')
                     .update({ quantity: newQty })
                     .eq('user_id', user.id)
-                    .eq('producto_id', item.producto_id);
+                    .eq('producto_id', item.producto_id));
             }
+            if (error) console.error('Error cambiando cantidad:', error);
             await refresh();
         },
         [supabase, user, items, refresh]
@@ -161,11 +176,12 @@ export function CartProvider({ children }) {
             if (!user) return;
             const item = items.find((i) => i.sku === sku);
             if (!item) return;
-            await supabase
+            const { error } = await supabase
                 .from('cart_items')
                 .delete()
                 .eq('user_id', user.id)
                 .eq('producto_id', item.producto_id);
+            if (error) console.error('Error quitando del carrito:', error);
             await refresh();
         },
         [supabase, user, items, refresh]
@@ -173,21 +189,33 @@ export function CartProvider({ children }) {
 
     const clearCart = useCallback(async () => {
         if (!user) return;
-        await supabase.from('cart_items').delete().eq('user_id', user.id);
-        setItems([]);
-    }, [supabase, user]);
+        const { error } = await supabase
+            .from('cart_items')
+            .delete()
+            .eq('user_id', user.id);
+        if (error) console.error('Error vaciando el carrito:', error);
+        // Refrescamos desde la DB en vez de setItems([]) optimista: si el
+        // delete falló, el carrito real sigue teniendo items y la UI debe
+        // reflejarlo.
+        await refresh();
+    }, [supabase, user, refresh]);
 
-    const value = {
-        items,
-        count: items.reduce((acc, i) => acc + i.qty, 0),
-        subtotal: items.reduce((acc, i) => acc + i.price * i.qty, 0),
-        hydrated,
-        isAuthenticated: Boolean(user),
-        addItem,
-        changeQty,
-        removeItem,
-        clearCart,
-    };
+    // useMemo: sin esto, `value` sería un objeto nuevo en cada render y TODOS
+    // los consumidores de useCart() se re-renderizarían aunque nada cambió.
+    const value = useMemo(
+        () => ({
+            items,
+            count: items.reduce((acc, i) => acc + i.qty, 0),
+            subtotal: items.reduce((acc, i) => acc + i.price * i.qty, 0),
+            hydrated,
+            isAuthenticated: Boolean(user),
+            addItem,
+            changeQty,
+            removeItem,
+            clearCart,
+        }),
+        [items, hydrated, user, addItem, changeQty, removeItem, clearCart]
+    );
 
     return (
         <CartContext.Provider value={value}>{children}</CartContext.Provider>

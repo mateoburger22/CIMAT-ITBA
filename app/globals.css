@@ -64,7 +64,11 @@ select {
 :root {
     /* Colores */
     --color-yellow:        #FFC600;
-    --color-yellow-dark:   #E6B400;
+    /* yellow-dark se usa como COLOR DE TEXTO sobre fondos claros (eyebrows,
+       SKUs, hovers). El valor anterior (#E6B400) daba ~1.9:1 de contraste
+       sobre blanco — ilegible e incumple WCAG AA (mínimo 4.5:1). Este dorado
+       oscuro mantiene el tono de marca y da ~5.6:1 sobre blanco. */
+    --color-yellow-dark:   #806400;
 
     --color-black:         #1A1A1A;
     --color-gray-900:      #2A2A2A;
@@ -178,6 +182,20 @@ button:focus-visible,
 summary:focus-visible {
     outline: 2px solid var(--color-yellow);
     outline-offset: 3px;
+}
+
+/* Texto solo para lectores de pantalla: invisible pero presente en el
+   árbol de accesibilidad (lo usa, p. ej., la región viva del carrito). */
+.visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
 }
 
 /* --- Utilidades globales (no encajan en CSS Modules porque rompen el scope) --- */

@@ -36,14 +36,16 @@ export default function Footer() {
                     </ul>
                 </nav>
 
-                <div>
+                {/* <address> es el elemento semántico para datos de contacto
+                    de la organización (su hermano de links ya es <nav>). */}
+                <address>
                     <h2>Contacto</h2>
                     <ul>
                         <li>
                             <a href="mailto:contacto@cimat.com">contacto@cimat.com</a>
                         </li>
                     </ul>
-                </div>
+                </address>
             </div>
 
             <p className={styles.copy}>

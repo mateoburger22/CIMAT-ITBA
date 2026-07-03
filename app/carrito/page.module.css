@@ -283,7 +283,9 @@
 }
 
 .shipping {
-    color: var(--color-gray-500) !important;
+    /* gray-700 (no 500): sobre el panel gris-100 el gris medio quedaba
+       por debajo del contraste AA en texto chico. */
+    color: var(--color-gray-700) !important;
     font-weight: 400 !important;
 }
 
@@ -308,7 +310,7 @@
 
 .note {
     font-size: var(--fs-xs);
-    color: var(--color-gray-500);
+    color: var(--color-gray-700); /* AA sobre gris-100 en texto chico */
     margin-bottom: var(--space-md);
 }
 

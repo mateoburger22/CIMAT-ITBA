@@ -23,10 +23,14 @@ export default function CartWidget() {
     const widgetRef = useRef(null);
     const pathname = usePathname();
 
-    // Cerrar al navegar a otra página
-    useEffect(() => {
+    // Cerrar al navegar a otra página. Se ajusta DURANTE el render
+    // comparando con la ruta anterior (patrón recomendado por React) en
+    // vez de en un useEffect, que provocaría un render extra.
+    const [prevPathname, setPrevPathname] = useState(pathname);
+    if (prevPathname !== pathname) {
+        setPrevPathname(pathname);
         setOpen(false);
-    }, [pathname]);
+    }
 
     // Cerrar al click afuera o tecla Escape
     useEffect(() => {
@@ -53,6 +57,7 @@ export default function CartWidget() {
                 type="button"
                 className={styles.cartLink}
                 aria-expanded={open}
+                aria-controls="cart-dropdown"
                 aria-label={`Ver carrito de compras, ${
                     count > 0
                         ? count + (count === 1 ? ' artículo' : ' artículos')
@@ -62,12 +67,21 @@ export default function CartWidget() {
             >
                 Carrito
                 {count > 0 && (
-                    <span className={styles.cartBadge}>{count}</span>
+                    <span className={styles.cartBadge} aria-hidden="true">
+                        {count}
+                    </span>
                 )}
             </button>
 
+            {/* Región viva SIEMPRE presente (aria-live no anuncia elementos
+                que recién aparecen): el lector de pantalla escucha "N
+                artículos" cada vez que cambia el carrito. */}
+            <span className="visually-hidden" aria-live="polite">
+                {count} {count === 1 ? 'artículo' : 'artículos'} en el carrito
+            </span>
+
             {open && (
-                <div className={styles.cartDropdown}>
+                <div className={styles.cartDropdown} id="cart-dropdown">
                     <p className={styles.heading}>Tu carrito</p>
 
                     {items.length === 0 ? (

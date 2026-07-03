@@ -64,12 +64,21 @@ export default function Carrito() {
                                             </div>
                                             <div className={styles.info}>
                                                 <p className={styles.sku}>{item.sku}</p>
-                                                <h2 className={styles.name}>{item.name}</h2>
+                                                {/* h3, no h2: los nombres de ítem son "hijos"
+                                                    del h1 de la página y no deben competir con
+                                                    el h2 "Resumen del pedido" en el outline. */}
+                                                <h3 className={styles.name}>{item.name}</h3>
                                                 <p className={styles.desc}>
                                                     {formatPrice(item.price)} c/u
                                                 </p>
                                             </div>
-                                            <div className={styles.qty} aria-label="Cantidad">
+                                            {/* role="group": un div con aria-label pero sin rol
+                                                no se anuncia en los lectores de pantalla. */}
+                                            <div
+                                                className={styles.qty}
+                                                role="group"
+                                                aria-label={`Cantidad de ${item.name}`}
+                                            >
                                                 <button
                                                     type="button"
                                                     className={styles.qtyBtn}

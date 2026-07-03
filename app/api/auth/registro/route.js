@@ -10,6 +10,7 @@
 
 import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
+import { isValidEmail } from '@/lib/validators';
 
 export async function POST(request) {
     const formData = await request.formData();
@@ -20,6 +21,10 @@ export async function POST(request) {
 
     if (!fullName || !email || !password) {
         redirect('/registro?error=campos');
+    }
+    // El type="email" del form se puede sacar con F12: re-validamos acá.
+    if (!isValidEmail(email)) {
+        redirect('/registro?error=email');
     }
     if (password.length < 6) {
         redirect('/registro?error=corta');

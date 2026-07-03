@@ -45,10 +45,25 @@ export default function Header() {
     const [menuOpen, setMenuOpen] = useState(false);
     const pathname = usePathname();
 
-    // Al navegar a otra ruta, el panel mobile se cierra solo.
-    useEffect(() => {
+    // Al navegar a otra ruta, el panel mobile se cierra solo. Se ajusta
+    // DURANTE el render comparando con la ruta anterior (patrón recomendado
+    // por React) en vez de en un useEffect, que provocaría un render extra.
+    const [prevPathname, setPrevPathname] = useState(pathname);
+    if (prevPathname !== pathname) {
+        setPrevPathname(pathname);
         setMenuOpen(false);
-    }, [pathname]);
+    }
+
+    // Escape cierra el panel mobile (mismo comportamiento que el dropdown
+    // del carrito y el lightbox: consistencia para usuarios de teclado).
+    useEffect(() => {
+        if (!menuOpen) return;
+        function onKeyDown(e) {
+            if (e.key === 'Escape') setMenuOpen(false);
+        }
+        document.addEventListener('keydown', onKeyDown);
+        return () => document.removeEventListener('keydown', onKeyDown);
+    }, [menuOpen]);
 
     return (
         <header className={styles.siteHeader}>
