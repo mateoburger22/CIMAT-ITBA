@@ -21,6 +21,7 @@ import styles from './AuthMenu.module.css';
 
 export default function AuthMenu() {
     const [user, setUser] = useState(null);
+    const [isAdmin, setIsAdmin] = useState(false);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
@@ -42,6 +43,29 @@ export default function AuthMenu() {
         return () => subscription.unsubscribe();
     }, []);
 
+    // Cuando hay usuario, preguntamos su rol para mostrar (o no) el link al
+    // panel. Es solo UI: /admin re-valida el rol en el servidor igual.
+    // (Si no hay usuario no hace falta resetear: el link solo se renderiza
+    // en la rama con sesión.)
+    useEffect(() => {
+        if (!user) return;
+        let cancelled = false;
+        const supabase = createClient();
+        supabase
+            .from('profiles')
+            .select('role')
+            .eq('id', user.id)
+            .single()
+            .then(({ data }) => {
+                if (!cancelled) setIsAdmin(data?.role === 'admin');
+            });
+        // Si el usuario cambia antes de que responda la query, descartamos
+        // la respuesta vieja para no pisar el rol del usuario nuevo.
+        return () => {
+            cancelled = true;
+        };
+    }, [user]);
+
     // Mientras resuelve la sesión inicial no mostramos nada: evita el
     // "flash" de "Iniciar sesión" cuando el usuario sí está logueado.
     if (loading) return <div className={styles.placeholder} aria-hidden="true" />;
@@ -59,6 +83,11 @@ export default function AuthMenu() {
 
     return (
         <div className={styles.menu}>
+            {isAdmin && (
+                <Link href="/admin" className={styles.adminLink}>
+                    Admin
+                </Link>
+            )}
             <Link href="/cuenta/pedidos" className={styles.greeting}>
                 Hola, {displayName}
             </Link>
