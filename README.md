@@ -4,6 +4,10 @@ Ecommerce de cintas adhesivas industriales: reparación con fibra de vidrio acti
 
 **Demo en producción:** https://cimat-itba.vercel.app
 
+> **Para evaluadores:** existe una cuenta de administrador de demostración
+> para revisar el panel `/admin`. Las credenciales se entregan por canal
+> privado (no se publican en el repo por ser público).
+
 ## Sobre el proyecto
 
 Proyecto de la materia **71.38 Programación Web** (Q1 2026, ITBA). El desarrollo se hizo progresivamente, siguiendo las fases del programa:
